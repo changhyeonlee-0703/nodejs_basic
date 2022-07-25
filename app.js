@@ -9,7 +9,6 @@ const connect = require("./schemas"); //index라는 파일 이름은 생략 가�
 connect();
 
 
-
 // ./는 상대경로. 내 경로에서부터 찾는다는 뜻. 라우터도 미들웨어이다
 const goodsRouter = require("./routes/goods"); 
 // const cartsRouter = require("./routes/carts")
@@ -24,9 +23,10 @@ const requestMiddleWare=(req,res,next)=>{
 };
 
 
+
+app.use(express.static("statics"));//express.static이란 정적폴더들 안에 있는 파일들을 그대로 가져다 줄 수 있다.
 app.use(express.json()); //바디로 들어오는 json형태의 데이터를 파싱해주는 미들웨어이다.
-
-
+app.use(express.urlencoded()); //바디로 들어오는 데이터를 urlencoded로 해석해 주는 미들웨어이다.
 app.use(requestMiddleWare);
 
 

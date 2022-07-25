@@ -29,9 +29,9 @@ router.get("/goods/cart", async (req, res)=>{
   const goods = await Goods.find({goodsId:goodsIds});
 
   res.json({
-      carts : carts.map((cart)=>({
+      cart : carts.map((cart)=>({
           quantity : cart.quantity,
-          goodsId : goods.find((item)=>item.goodsId===cart.goodsId),
+          goods : goods.find((item)=>item.goodsId===cart.goodsId),
       })),
   });
 });
@@ -45,29 +45,16 @@ router.get("/goods/:goodsId", async (req, res) => {
 
   //find함수는 하나를 찾는 함수가 아니라 다수가 있으면 다수를 찾는 함수이다. 그렇기에 배열로 리턴함
   // 또한 프로미스 함수이기 때문에 await와 async를 붙여야한다.
-  const [detail] = await Goods.find({ goodsId: Number(goodsId) });
+  const [goods] = await Goods.find({ goodsId: Number(goodsId) });
 
   // 비구조화(destructoring) - 배열, 객체 둘 다 가능
   //const [detail] = goods.filter((item) => item.goodsId === Number(goodsId));
   res.json({
-    detail,   //객체초기화 사용   detail: detail,
+    goods,   //객체초기화 사용   detail: detail,
   });
 });
 
 
-router.post("/goods/:goodsId/cart",async (req, res)=>{
-  const {goodsId}=req.params;
-  const {quantity}=req.body;
-
-  const existsCarts = await Carts.find({goodsId : Number(goodsId)});
-  if (existsCarts.length) {
-    return res
-      .status(400) //상태번호 400은 너 잘못되었다란 뜻.
-      .json({ success: false, errorMessage: "이미 있는 데이터 입니다." }) 
-  }
-  await Carts.create({goodsId : Number(goodsId), quantity});
-  res.json({success : true });
-});
 
 
 router.delete("/goods/:goodsId/cart", async (req, res)=>{
@@ -88,14 +75,18 @@ router.put("/goods/:goodsId/cart", async (req, res)=>{
   
   const existsCarts = await Carts.find({goodsId:Number(goodsId)});
   if (quantity<1){
-    return res.status(400).json({success : false, errorMessage : "수량은 1 미만으로 설정할 수 없습니다."})
+    res.status(400).json({success : false, errorMessage : "수량은 1 미만으로 설정할 수 없습니다."});
+    return ;
   }
 
-  if (!existsCarts){
-    return res.status(400).json({success : false, errorMessage:"장바구니에 해당 상품이 없습니다."});
-  }
+  if (!existsCarts.length){
+    await Carts.create({goodsId : Number(goodsId), quantity});
 
-  await Carts.updateOne( {goodsId:Number(goodsId)} , {$set : {quantity}} );
+  }
+  else{
+    await Carts.updateOne( {goodsId:Number(goodsId)} , {$set : {quantity}} );
+  }
+  
   res.json({success : true});
 });
 
